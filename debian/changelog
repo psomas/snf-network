@@ -1,3 +1,11 @@
+snf-network (0.16.1-1~wheezy) wheezy; urgency=low
+
+  * Add snf-network-reconfigure Ganeti hook
+  * Add debug mode
+  * Save all Ganeti-exported env variables in tap state
+
+ -- Stratos Psomadakis <psomas@grnet.gr>  Fri, 30 Oct 2015 15:47:48 +0200
+
 snf-network (0.16-1~wheezy) wheezy; urgency=low
 
   * Rename scripts
@@ -16,6 +24,7 @@ snf-network (0.14.0-1) unstable; urgency=low
     (kvm-vif-bridge, mac2eui64, clear-proxy-ndp) 
 
  -- Dimitris Aragiorgis <dimara@grnet.gr>  Fri, 24 May 2013 18:05:14 +0300
+
 
 
 
