@@ -37,38 +37,62 @@ source /etc/default/snf-network
 
 : ${STATE_DIR:=/var/lib/snf-network}
 : ${LOGFILE:=/var/log/ganeti/snf-network.log}
+: ${DEBUGFILE:=/var/log/ganeti/snf-network.debug}
+: ${DEBUG:=false}
+
+if $DEBUG; then
+  set -x
+  exec &>>$DEBUGFILE
+fi
 
 
 function try {
 
-  $1 &>/dev/null || true
+  $1 || true
 
 }
 
 function clear_save {
 
   rm -f $STATE_DIR/$INTERFACE
+  rm -f $STATE_DIR/$INTERFACE-cmds
+  rm -f $STATE_DIR/$INTERFACE-env
 
 }
 
 function init_save {
 
-    cat > $STATE_DIR/$INTERFACE <<EOF
+    cat > $STATE_DIR/$INTERFACE-env <<EOF
 INSTANCE=$INSTANCE
+MAC=$MAC
 IP=$IP
-EUI64=$EUI64
+MODE=$MODE
 LINK=$LINK
-NETWORK_NAME=$NETWORK_NAME
+EUI64=$EUI64
+INTERFACE=$INTERFACE
 INTERFACE_NAME=$INTERFACE_NAME
+INTERFACE_INDEX=$INTERFACE_INDEX
+INTERFACE_UUID=$INTERFACE_UUID
+NETWORK_NAME=$NETWORK_NAME
+NETWORK_UUID=$NETWORK_UUID
+NETWORK_SUBNET=$NETWORK_SUBNET
+NETWORK_GATEWAY=$NETWORK_GATEWAY
+NETWORK_SUBNET6=$NETWORK_SUBNET6
+NETWORK_GATEWAY6=$NETWORK_GATEWAY6
+NETWORK_MAC_PREFIX=$NETWORK_MAC_PREFIX
 NETWORK_TAGS="$NETWORK_TAGS"
 TAGS="$TAGS"
+EOF
+
+    cat > $STATE_DIR/$INTERFACE-cmds <<EOF
+source $STATE_DIR/$INTERFACE-env
 EOF
 
 }
 
 function save {
 
-  echo $@ >> $STATE_DIR/$INTERFACE
+  echo $@ >> $STATE_DIR/$INTERFACE-cmds
   $@
 
 }
@@ -385,7 +409,7 @@ send_command () {
   fi
   log "* $nsupdate_command"
   log "* $command"
-  $nsupdate_command > /dev/null << EOF
+  $nsupdate_command <<EOF
   server $SERVER
   $command
   send
@@ -537,6 +561,7 @@ get_mode_info () {
 # Note that INTERFACE is available only during ifup scripts
 function get_info () {
 
+  test -n "$RECONFIGURE" && source $STATE_DIR/$INTERFACE-env
   get_mode_info $MODE $LINK $INTERFACE
   get_ebtables_chains $INTERFACE
   get_rev4_info $IP
